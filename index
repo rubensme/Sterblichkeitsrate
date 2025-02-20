@@ -1,0 +1,91 @@
+<!DOCTYPE html> 
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Abfrage der Sterblichkeitsrate</title>
+    <script>
+        let datensatz = [];
+
+        // Daten aus der JSON-Datei laden
+        async function datenLaden() {
+            let response = await fetch("data.json");
+            datensatz = await response.json();
+
+            // Länder in die Liste laden
+            let landAuswahl = document.getElementById("land");
+            datensatz.forEach(eintrag => {
+                let option = document.createElement("option");
+                option.value = eintrag.field1;
+                option.textContent = eintrag.field1;
+                landAuswahl.appendChild(option);
+            });
+        }
+
+        // Jahre dynamisch füllen
+        function jahreLaden() {
+            let jahrAuswahl = document.getElementById("jahr");
+            for (let i = 1960; i <= 2023; i++) {
+                let option = document.createElement("option");
+                option.value = i;
+                option.textContent = i;
+                jahrAuswahl.appendChild(option);
+            }
+        }
+
+        // Daten abrufen, wenn Benutzer Land und Jahr auswählt
+        function datenAbrufen() {
+            let land = document.getElementById("land").value;
+            let jahr = document.getElementById("jahr").value;
+        
+            let ergebnis = datensatz.find(eintrag => eintrag.field1 === land);
+        
+            if (!ergebnis) {
+                document.getElementById("ergebnis").innerHTML = "Land nicht gefunden.";
+                return;
+            }
+        
+            // Korrektes Feld für das Jahr aus JSON abrufen
+            let feldIndex = 5 + (parseInt(jahr) - 1960);
+            let feldSchluessel = `field${feldIndex}`;
+        
+            console.log("Land:", land);
+            console.log("Jahr:", jahr);
+            console.log("Erwarteter Schlüssel:", feldSchluessel);
+            console.log("Gefundene Daten:", ergebnis);
+        
+            if (ergebnis.hasOwnProperty(feldSchluessel) && ergebnis[feldSchluessel] !== null) {
+                document.getElementById("ergebnis").innerHTML = `
+                    <strong>Land:</strong> ${ergebnis.field1}<br>
+                    <strong>Code:</strong> ${ergebnis.field2}<br>
+                    <strong>Indikator:</strong> ${ergebnis.field3}<br>
+                    <strong>Jahr:</strong> ${jahr}<br>
+                    <strong>Wert:</strong> ${ergebnis[feldSchluessel]}
+                `;
+            } else {
+                document.getElementById("ergebnis").innerHTML = "Daten nicht gefunden.";
+            }
+        }
+        
+        // Daten beim Laden der Seite abrufen
+        window.onload = function() {
+            jahreLaden();
+            datenLaden();
+        };
+    </script>
+</head>
+<body>
+    <h2>Abfrage der Sterblichkeitsrate</h2>
+
+    <label>Land:</label>
+    <select id="land"></select>
+
+    <label>Jahr:</label>
+    <select id="jahr"></select>
+
+    <button onclick="datenAbrufen()">Suchen</button>
+
+    <h3>Ergebnis:</h3>
+    <div id="ergebnis"></div> 
+</body>
+</html>
